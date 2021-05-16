@@ -31,7 +31,7 @@ const addBook = (
 			.code(400);
 	}
 
-	if (readPage >= pageCount) {
+	if (readPage > pageCount) {
 		return h
 			.response(
 				newResponse({
@@ -91,16 +91,46 @@ const addBook = (
 };
 
 const getAllBooks = (
-	_: Request,
+	request: Request,
 	h: ResponseToolkit
 ): ServerRoute['handler'] => {
-	const booksRes = books.map(book => {
-		return {
-			id: book.id,
-			name: book.name,
-			publisher: book.publisher
-		};
+	const { name, reading, finished } = request.query;
+
+	const filteredBooks = books.filter(book => {
+		let keep = true;
+
+		if (name !== undefined)
+			keep = book.name.toLowerCase().includes(name.toLowerCase());
+
+		if (reading !== undefined)
+			keep =
+				reading == 1 ? book.reading === true : book.reading === false;
+
+		if (finished !== undefined)
+			keep =
+				finished == 1
+					? book.finished === true
+					: book.finished === false;
+
+		return keep;
 	});
+
+	const booksRes =
+		filteredBooks.length > 0
+			? filteredBooks.map(book => {
+					return {
+						id: book.id,
+						name: book.name,
+						publisher: book.publisher
+					};
+			  })
+			: books.map(book => {
+					return {
+						id: book.id,
+						name: book.name,
+						publisher: book.publisher
+					};
+			  });
 
 	return h.response(
 		newResponse({
@@ -171,7 +201,7 @@ const updateBook = (
 			.code(400);
 	}
 
-	if (readPage >= pageCount) {
+	if (readPage > pageCount) {
 		return h
 			.response(
 				newResponse({
