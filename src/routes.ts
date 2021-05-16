@@ -1,6 +1,12 @@
 import { ServerRoute } from '@hapi/hapi';
 
-import { addBook, getBooks } from './handler';
+import {
+	addBook,
+	getBook,
+	getAllBooks,
+	updateBook,
+	deleteBook
+} from './handler';
 
 const routes: ServerRoute[] = [
 	{
@@ -11,12 +17,27 @@ const routes: ServerRoute[] = [
 	{
 		path: '/books',
 		method: 'GET',
-		handler: getBooks
+		handler: getAllBooks
 	},
 	{
 		path: '/books',
 		method: 'POST',
 		handler: addBook
+	},
+	{
+		path: '/books/{bookId}',
+		method: 'GET',
+		handler: getBook
+	},
+	{
+		path: '/books/{bookId}',
+		method: 'PUT',
+		handler: updateBook
+	},
+	{
+		path: '/books/{bookId}',
+		method: 'DELETE',
+		handler: deleteBook
 	}
 ];
 

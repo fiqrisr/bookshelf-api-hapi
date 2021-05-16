@@ -90,7 +90,10 @@ const addBook = (
 		.code(500);
 };
 
-const getBooks = (_: Request, h: ResponseToolkit): ServerRoute['handler'] => {
+const getAllBooks = (
+	_: Request,
+	h: ResponseToolkit
+): ServerRoute['handler'] => {
 	const booksRes = books.map(book => {
 		return {
 			id: book.id,
@@ -109,4 +112,144 @@ const getBooks = (_: Request, h: ResponseToolkit): ServerRoute['handler'] => {
 	);
 };
 
-export { addBook, getBooks };
+const getBook = (
+	request: Request,
+	h: ResponseToolkit
+): ServerRoute['handler'] => {
+	const { bookId } = request.params;
+
+	const book = books.filter(book => book.id === bookId)[0];
+
+	if (book !== undefined) {
+		return h
+			.response(
+				newResponse({
+					status: 'success',
+					data: {
+						book
+					}
+				})
+			)
+			.code(200);
+	}
+
+	return h
+		.response(
+			newResponse({
+				status: 'fail',
+				message: 'Buku tidak ditemukan'
+			})
+		)
+		.code(404);
+};
+
+const updateBook = (
+	request: Request,
+	h: ResponseToolkit
+): ServerRoute['handler'] => {
+	const { bookId } = request.params;
+
+	const {
+		name,
+		year,
+		author,
+		publisher,
+		summary,
+		pageCount,
+		reading,
+		readPage
+	} = <BookPayload>request.payload;
+
+	if (name === undefined) {
+		return h
+			.response(
+				newResponse({
+					status: 'fail',
+					message: 'Gagal memperbarui buku. Mohon isi nama buku'
+				})
+			)
+			.code(400);
+	}
+
+	if (readPage >= pageCount) {
+		return h
+			.response(
+				newResponse({
+					status: 'fail',
+					message:
+						'Gagal memperbarui buku. readPage tidak boleh lebih besar dari pageCount'
+				})
+			)
+			.code(400);
+	}
+
+	const updatedAt = new Date().toISOString();
+	const index = books.findIndex(book => book.id === bookId);
+
+	if (index !== -1) {
+		books[index] = {
+			...books[index],
+			name,
+			year,
+			author,
+			summary,
+			publisher,
+			pageCount,
+			readPage,
+			reading,
+			finished: pageCount === readPage,
+			updatedAt
+		};
+
+		return h
+			.response(
+				newResponse({
+					status: 'success',
+					message: 'Buku berhasil diperbarui'
+				})
+			)
+			.code(200);
+	}
+
+	return h
+		.response(
+			newResponse({
+				status: 'fail',
+				message: 'Gagal memperbarui buku. Id tidak ditemukan'
+			})
+		)
+		.code(404);
+};
+
+const deleteBook = (
+	request: Request,
+	h: ResponseToolkit
+): ServerRoute['handler'] => {
+	const { bookId } = request.params;
+
+	const index = books.findIndex(book => book.id === bookId);
+
+	if (index !== -1) {
+		books.splice(index - 1);
+
+		return h
+			.response(
+				newResponse({
+					status: 'success',
+					message: 'Buku berhasil dihapus'
+				})
+			)
+			.code(200);
+	}
+
+	return h
+		.response(
+			newResponse({
+				status: 'fail',
+				message: 'Buku gagal dihapus. Id tidak ditemukan'
+			})
+		)
+		.code(404);
+};
+
+export { addBook, getAllBooks, getBook, updateBook, deleteBook };
